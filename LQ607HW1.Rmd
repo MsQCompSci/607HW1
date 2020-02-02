@@ -1,0 +1,144 @@
+---
+title: "LQ DATA 607 HW1"
+author: "Layla Quinones"
+date: "1/28/2020"
+output: html_document
+---
+
+# A. Overview
+This data contains information on every NBA player, by season, since 2014 according to RAPTOR (Robust Algorithm Player Tracking On/Off Ratings). This data enables player tracking and predictive modeling for future NBA seasons based on performance, ball possesions and points scored. Ratings are calculated using various algorithms designed by teams of data scientists.
+
+[CLICK HERE to learn more about RAPTOR](https://fivethirtyeight.com/features/introducing-raptor-our-new-metric-for-the-modern-nba/)
+
+[CLICK HERE to view FiveThirtyEight article](https://projects.fivethirtyeight.com/2020-nba-player-ratings/)
+
+[CLICK HERE for GitHub repo with original data files](https://github.com/fivethirtyeight/data/tree/master/nba-raptor)
+
+# B. Import Data
+Data is imported from a GitHub file online. [Click HERE to view raw file on web](https://raw.githubusercontent.com/fivethirtyeight/data/master/nba-raptor/modern_RAPTOR_by_player.csv). It has a header with a number of columns as shown below.
+```{r}
+
+library(RCurl)
+
+# Use getURL from RCurl to download the file.
+url = "https://raw.githubusercontent.com/fivethirtyeight/data/master/nba-raptor/modern_RAPTOR_by_player.csv"
+ raw = getURL(url)
+
+#create a data frame.
+rawData = read.csv(text = raw, header = TRUE)
+#Show df
+head(rawData)
+```
+
+# C. Select a subset of data
+> ## I. Select Columns
+
+Now that we have uploaded our data successfully from the internet and we can select our subset.
+```{r}
+#Show names of columns
+names(rawData)
+
+#Select only the columns of interest
+subData = rawData[, c(1, 3:5, 14, 15, 20, 21)]
+names(subData)
+
+```
+> I am interested and looking at the range of ratings per player in this data set. For this purpose I chose the following columns with the following descriptions:
+
+> 1. **player_name:** the name of the player
+
+> 2. **season:** the year associated with the measurments
+
+> 3. **poss:** the number of possessions played
+
+> 4. **mp:** the amount of minutes played
+
+> 5. **raptor_total:** Points above average per 100 possessions added by player on both offense and defense, using both box and on-off components See [SEE THIS REFERENCE](https://www.basketball-reference.com/about/bpm.html) for more information.
+
+> 6. **war_total:** Wins Above Replacement between regular season and playoffs. [SEE THIS REFERENCE](https://library.fangraphs.com/misc/war/) for more information 
+
+> 7. **predator_total:** Predictive points above average per 100 possessions added by player on both offense and defense
+
+> 8. **pace_impact:** Player impact on team possessions per 48 minutes
+
+> ## II. Rename Columns
+
+> Rename the columns and hide the results so the entire subset of data does not show
+
+```{r results='hide'}
+library(plyr)
+subData = rename(subData, c("player_name"="player", "poss"="possessionsPlayed", "mp"="minutesPlayed", "raptor_total"="totalPoints", "war_total"="totalContribution","predator_total"="totalPredictedPoints", "pace_impact"="playerImpact"))
+
+```
+> Display new column names
+
+```{r}
+names(subData)
+```
+
+# Analysis
+
+> ## I. The players with the max/min total PACE impact and corresponding year of that impact
+
+```{r}
+maxPlayerImpact = max(subData$playerImpact) # the max player impact score
+maxImpactIndex = which(subData$playerImpact == max(subData$playerImpact)) # corresponding index of value
+maxImpactPlayer = subData$player[maxImpactIndex] # corresponding player name has same index
+maxImpactYear = subData$season[maxImpactIndex]# corresponding year has same index
+minPlayerImpact = min(subData$playerImpact) # the min player impact score
+minImpactIndex = which(subData$playerImpact == min(subData$playerImpact)) # corresponding index of value
+minImpactPlayer = subData$player[minImpactIndex] # corresponding player name has same index
+minImpactYear = subData$season[minImpactIndex]# corresponding year has same index
+```
+
+Here we can see that the max impact score was `r maxPlayerImpact` which belonged to `r maxImpactPlayer` in `r maxImpactYear`. The min impact score was `r minPlayerImpact` which belonged to `r minImpactPlayer` in `r minImpactYear`.
+
+> ## II. The players with the max/min contribution (WAR) to their team and corresponding year of that contribution
+
+```{r}
+maxPlayerCont = max(subData$totalContribution) # the max player contribution score
+maxContIndex = which(subData$totalContribution == max(subData$totalContribution)) # corresponding index of value
+maxContPlayer = subData$player[maxContIndex] # corresponding player name has same index
+maxContYear = subData$season[maxContIndex]# corresponding year has same index
+minPlayerCont = min(subData$totalContribution) # the min player contribution score
+minContIndex = which(subData$totalContribution == min(subData$totalContribution)) # corresponding index of value
+minContPlayer = subData$player[minContIndex] # corresponding player name has same index
+minContYear = subData$season[minContIndex]# corresponding year has same index
+```
+Here we can see that the max contribution score was `r maxPlayerCont` which belonged to `r maxContPlayer` in `r maxContYear`. The min contribution score was `r minPlayerCont` which belonged to `r minContPlayer` in `r minContYear`.
+
+> ## III. The players with the max/min quality and contribution to their team (RAPTOR) and corresponding year
+
+```{r}
+maxPlayerQual = max(subData$totalPoints) # the max player quality
+maxQualIndex = which(subData$totalPoints == max(subData$totalPoints)) # corresponding index of value
+maxQualPlayer = subData$player[maxQualIndex] # corresponding player name has same index
+maxQualYear = subData$season[maxQualIndex]# corresponding year has same index
+minPlayerQual = min(subData$totalPoints) # the min quality
+minQualIndex = which(subData$totalPoints == min(subData$totalPoints)) # corresponding index of value
+minQualPlayer = subData$player[minQualIndex] # corresponding player name has same index
+minQualYear = subData$season[minQualIndex]# corresponding year has same index
+```
+
+Here we can see that the max quality and contribution score was `r maxPlayerQual` which belonged to `r maxQualPlayer` in `r maxQualYear`. The min quality and contribution score was `r minPlayerQual` which belonged to `r minQualPlayer` in `r minQualYear`.
+
+> ## IV. The players with the max/min predicted points added to their team and corresponding year
+
+```{r}
+maxPlayerPred = max(subData$totalPredictedPoints) # the max predicted points
+maxPredIndex = which(subData$totalPredictedPoints == max(subData$totalPredictedPoints)) # corresponding index of value
+maxPredPlayer = subData$player[maxPredIndex] # corresponding player name has same index
+maxPredYear = subData$season[maxPredIndex]# corresponding year has same index
+minPlayerPred = min(subData$totalPredictedPoints) # the min predicted points
+minPredIndex = which(subData$totalPredictedPoints == min(subData$totalPredictedPoints)) # corresponding index of value
+minPredPlayer = subData$player[minPredIndex] # corresponding player name has same index
+minPredYear = subData$season[minPredIndex]# corresponding year has same index
+```
+
+Here we can see that the max quality and contribution score was `r maxPlayerPred` which belonged to `r maxPredPlayer` in `r maxPredYear`. The min quality and contribution score was `r minPlayerPred` which belonged to `r minPredPlayer` in `r minPredYear`.
+
+# Conclusions
+
+This particular subset of NBA data focuses on measuring the impact of specific player per year relative to the average for other NBA players in that season. From this data set we can rank players per season based on their impact and rank players per season based on their predicted point contribution to their team. We can also analyze the realtionship between the number of posessions a player has and the scores they gained for each year. I am particularly interested in exactly how some of these scores are calculated. By looking at the relationships between each variable in the original data set and the trends that we see between predicted values and outcomes, we can validate or refine the algorithm they use to calculate player contribution to their team. 
+
+Some next steps that can take is to look at how well the predicted points per possession compare to the actualy points per posession for each year. We can also look at the average of each metric per year or per player. Incorperating biometric data (such as age, arm span, height) might also lead to some insight into contributing factors for each metric. In addition, incorperating player position would allow us to rank players by position and see if this effects the outcome of scores. It would be interesting to incorperate team data and analyze the metrics by team and quantify the effect each player has on their team for a particular season. Lastly, we can look at historical data over time to analyze how well a player evolved or devolves in contributing to their team. This information can be used to strtegically plan which players best suits a particualar position, inform future draft picks, replacements or trades.
